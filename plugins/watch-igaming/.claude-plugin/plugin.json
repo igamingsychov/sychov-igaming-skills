@@ -1,0 +1,22 @@
+{
+  "name": "watch-igaming",
+  "displayName": "watch iGaming",
+  "version": "1.0.0",
+  "description": "Watches a whole video, from a link or a local file: subtitles or local speech transcription plus frames taken at scene changes, matched by timecode. Returns a review, QA table, competitor comparison, UX audit, meeting minutes or lecture notes.",
+  "author": {
+    "name": "Yevhen Sychov",
+    "url": "https://sychov-igaming.com"
+  },
+  "homepage": "https://sychov-igaming.com/en/skills/watch/",
+  "repository": "https://github.com/igamingsychov/watch-igaming",
+  "license": "MIT",
+  "keywords": [
+    "video",
+    "transcription",
+    "screen-recording",
+    "qa",
+    "ux-audit",
+    "meeting-minutes",
+    "igaming"
+  ]
+}

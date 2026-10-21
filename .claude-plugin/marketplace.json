@@ -1,0 +1,24 @@
+{
+  "name": "sychov-igaming-skills",
+  "description": "Claude Code skills for casino and betting teams: video review for QA, product and CRM, and second deposit analysis for retention.",
+  "owner": {
+    "name": "Yevhen Sychov",
+    "url": "https://sychov-igaming.com"
+  },
+  "plugins": [
+    {
+      "name": "watch-igaming",
+      "source": "./plugins/watch-igaming",
+      "description": "Watches a whole video, from a link or a local file: subtitles or local speech transcription plus frames taken at scene changes, matched by timecode. Returns a review, QA table, competitor comparison, UX audit, meeting minutes or lecture notes.",
+      "category": "productivity",
+      "tags": ["video", "transcription", "qa", "ux-audit", "igaming"]
+    },
+    {
+      "name": "second-deposit-igaming",
+      "source": "./plugins/second-deposit-igaming",
+      "description": "Shows why first-time depositors do not make a second deposit, from casino back-office exports: 12 reasons, missing second deposits and Sum Dep per reason, 24 metrics and a daily list for the CRM. Local python3 scripts, player rows stay on your machine.",
+      "category": "analytics",
+      "tags": ["igaming", "crm", "retention", "ftd", "analytics"]
+    }
+  ]
+}

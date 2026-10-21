@@ -1,0 +1,21 @@
+{
+  "name": "second-deposit-igaming",
+  "displayName": "second deposit iGaming",
+  "version": "1.0.0",
+  "description": "Shows why first-time depositors do not make a second deposit, from casino back-office exports: 12 reasons, missing second deposits and Sum Dep per reason, 24 metrics and a daily list for the CRM. Local python3 scripts, player rows stay on your machine.",
+  "author": {
+    "name": "Yevhen Sychov",
+    "url": "https://sychov-igaming.com"
+  },
+  "homepage": "https://sychov-igaming.com/en/skills/second-deposit/",
+  "repository": "https://github.com/igamingsychov/second-deposit-igaming",
+  "license": "MIT",
+  "keywords": [
+    "igaming",
+    "crm",
+    "retention",
+    "ftd",
+    "second-deposit",
+    "analytics"
+  ]
+}
