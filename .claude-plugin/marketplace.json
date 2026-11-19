@@ -1,6 +1,6 @@
 {
   "name": "sychov-igaming-skills",
-  "description": "Claude Code skills for casino and betting teams: video review for QA, product and CRM, and second deposit analysis for retention.",
+  "description": "Claude Code skills for casino and betting teams: video review for QA, product and CRM, second deposit analysis for retention, and tutorial videos for players from a site link.",
   "owner": {
     "name": "Yevhen Sychov",
     "url": "https://sychov-igaming.com"
@@ -11,14 +11,39 @@
       "source": "./plugins/watch-igaming",
       "description": "Watches a whole video, from a link or a local file: subtitles or local speech transcription plus frames taken at scene changes, matched by timecode. Returns a review, QA table, competitor comparison, UX audit, meeting minutes or lecture notes.",
       "category": "productivity",
-      "tags": ["video", "transcription", "qa", "ux-audit", "igaming"]
+      "tags": [
+        "video",
+        "transcription",
+        "qa",
+        "ux-audit",
+        "igaming"
+      ]
     },
     {
       "name": "second-deposit-igaming",
       "source": "./plugins/second-deposit-igaming",
       "description": "Shows why first-time depositors do not make a second deposit, from casino back-office exports: 12 reasons, missing second deposits and Sum Dep per reason, 24 metrics and a daily list for the CRM. Local python3 scripts, player rows stay on your machine.",
       "category": "analytics",
-      "tags": ["igaming", "crm", "retention", "ftd", "analytics"]
+      "tags": [
+        "igaming",
+        "crm",
+        "retention",
+        "ftd",
+        "analytics"
+      ]
+    },
+    {
+      "name": "show-igaming",
+      "source": "./plugins/show-igaming",
+      "description": "Turns a site link and steps in plain words into a finished vertical tutorial video for players: whole iPhone screen, highlights taken from the page, verified taps, captions in your languages, blurred personal data, your brand.",
+      "category": "productivity",
+      "tags": [
+        "igaming",
+        "customer-support",
+        "video-tutorial",
+        "crm",
+        "onboarding"
+      ]
     }
   ]
 }

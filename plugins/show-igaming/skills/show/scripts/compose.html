@@ -1,0 +1,264 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<!-- Компоновщик ролика: show.py открывает страницу в браузере без окна, передает манифест в init() и снимает кадры render(t).
+     Кадры записи экрана уже нарезаны ffmpeg и уже с размытием личных данных; страница только двигает камеру и рисует оформление бренда. -->
+<style>
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--sh:rgba(0,0,0,.4);--bg:#0A0C13;--bg2:#151233;--ac:#7A5CFF;--ac2:#B9A8FF;--tx:#FFFFFF;--mu:#A7ABC9;--card:rgba(20,22,40,.82);--line:rgba(255,255,255,.12);--ff:M;--ffh:var(--ff);--r:18px;
+  --glow:color-mix(in srgb,var(--ac) 35%,transparent);--dsh:0 60px 120px var(--sh);--ctabg:var(--ac)}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
+#stage{position:absolute;inset:0;overflow:hidden;font-family:var(--ff),M,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased}
+.bg{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 0%,var(--bg2),var(--bg) 62%)}
+.bg i{position:absolute;border-radius:50%;filter:blur(90px)}
+.bg .g1{width:760px;height:760px;background:var(--g1,var(--ac));opacity:.28}
+.bg .g2{width:620px;height:620px;background:var(--g2,color-mix(in srgb,var(--ac) 55%,var(--ac2)));opacity:.2}
+.grain{position:absolute;inset:0;opacity:.09;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ui{color:var(--ac2)}
+/* шапка во время шагов */
+#hdr{position:absolute;left:0;right:0;top:46px;display:flex;flex-direction:column;align-items:center;gap:10px;opacity:0}
+#hdr .brand{display:flex;align-items:center;gap:12px;height:40px}
+#hdr .brand img{height:40px;width:auto;display:block}
+#hdr .brand b{font-weight:800;font-size:26px;letter-spacing:-.3px}
+#hdr .ht{font-weight:600;font-size:24px;color:var(--mu);white-space:nowrap;max-width:900px;overflow:hidden;text-overflow:ellipsis}
+/* заставка */
+#intro{position:absolute;left:70px;right:70px;top:230px;display:flex;flex-direction:column;align-items:center;text-align:center;transform-origin:50% 0}
+#intro .ilogo{display:flex;align-items:center;gap:14px;margin-bottom:46px;height:52px}
+#intro .ilogo img{height:52px;width:auto}
+#intro .ilogo b{font-weight:800;font-size:34px}
+#intro .kick{display:inline-flex;align-items:center;gap:12px;padding:12px 20px;border-radius:999px;background:color-mix(in srgb,var(--ac) 18%,transparent);border:1.5px solid color-mix(in srgb,var(--ac) 60%,transparent);
+  font-weight:800;font-size:22px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac2)}
+#intro .kick:before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ac);box-shadow:0 0 14px var(--ac)}
+#intro .ttl{margin-top:34px;font-family:var(--ffh),var(--ff),M,sans-serif;font-weight:800;font-size:112px;line-height:1.02;letter-spacing:-3.4px}
+#intro .ttl .ln{display:block;white-space:nowrap}
+#intro .meta{margin-top:38px;display:flex;gap:14px;justify-content:center}
+#intro .meta span{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:14px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:26px;color:var(--mu)}
+#intro .meta b{color:var(--tx)}
+/* телефон */
+#dev{position:absolute;left:0;top:0;transform-origin:50% 0}
+#dev .bz{position:absolute;inset:0;border-radius:var(--dr);background:linear-gradient(145deg,#3a3d48,#101116 22%,#0b0c10 78%,#3a3d48);padding:var(--bzw);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.16),inset 0 0 0 2px rgba(255,255,255,.06),var(--dsh),0 0 140px var(--glow)}
+#dev .scr{position:relative;width:100%;height:100%;border-radius:var(--sr);overflow:hidden;background:#000}
+#sb{position:absolute;left:0;right:0;top:0;pointer-events:none;color:var(--sbc,#fff);font:600 var(--sbf) -apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;letter-spacing:-.2px}
+#sb .tm{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center}
+#sb .di{position:absolute;left:50%;border-radius:999px;background:#000}
+#sb .ic{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:var(--sbg)}
+#sb svg{display:block;fill:currentColor}
+#hi{position:absolute;left:50%;border-radius:999px;background:var(--hic,#fff);opacity:.9;pointer-events:none}
+#dev .scr img{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
+#dev .glare{position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 30%);pointer-events:none}
+#spot{position:absolute;border-radius:18px;border:3px solid var(--ac);box-shadow:0 0 0 4000px rgba(5,6,14,.34),0 0 30px color-mix(in srgb,var(--ac) 70%,transparent);opacity:0}
+#finger{position:absolute;width:0;height:0}
+#finger .dot{position:absolute;left:-32px;top:-32px;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.10);border:4px solid rgba(255,255,255,.96);
+  box-shadow:0 0 0 2px rgba(0,0,0,.22),0 6px 18px rgba(0,0,0,.35),inset 0 0 0 2px rgba(0,0,0,.18)}
+#finger .dot:after{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 2px rgba(0,0,0,.25)}
+#finger .rip{position:absolute;left:-32px;top:-32px;width:64px;height:64px;border-radius:50%;border:4px solid var(--ac);opacity:0}
+/* подпись */
+#cap{position:absolute;left:70px;right:70px;border-radius:28px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(18px);padding:26px 34px 30px;opacity:0;
+  box-shadow:0 24px 60px var(--sh)}
+#cap .row{position:relative;height:30px}
+#cap .c{position:absolute;left:0;top:0;font-weight:800;font-size:21px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac2);white-space:nowrap;opacity:0}
+#cap .tx{position:relative;margin-top:12px;height:124px}
+#cap .t{position:absolute;left:0;right:0;top:50%;font-weight:800;font-size:48px;line-height:1.16;letter-spacing:-.8px;text-wrap:balance;opacity:0}
+#cap .bar{position:relative;margin-top:18px;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+#cap .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:linear-gradient(90deg,var(--ac),var(--ac2))}
+#cap .ticks{position:absolute;left:0;right:0;top:0;bottom:0}
+#cap .ticks u{position:absolute;top:0;bottom:0;width:4px;margin-left:-2px;background:var(--card)}
+/* финал */
+#outro{position:absolute;left:84px;right:84px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;opacity:0}
+#outro .ologo{display:flex;align-items:center;gap:12px;height:46px;margin-bottom:40px}
+#outro .ologo img{height:46px;width:auto}
+#outro .ologo b{font-weight:800;font-size:30px}
+#outro svg{width:170px;height:170px;overflow:visible}
+#outro .oT{margin-top:26px;font-family:var(--ffh),var(--ff),M,sans-serif;font-weight:800;font-size:92px;letter-spacing:-2.5px;line-height:1.05}
+#outro .rec{margin-top:40px;width:100%;max-width:880px;padding:20px 34px;border-radius:32px;background:var(--card);border:1px solid var(--line);text-align:left;display:flex;flex-direction:column}
+#outro .rec .r{display:flex;align-items:flex-start;gap:22px;padding:14px 0;border-bottom:1px solid var(--line)}
+#outro .rec .r:last-child{border-bottom:0}
+#outro .rec .n{flex:none;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--ac2);font-weight:800;font-size:23px;display:flex;align-items:center;justify-content:center}
+#outro .rec .x{font-weight:600;font-size:30px;line-height:1.28;padding-top:5px;text-wrap:pretty}
+#outro .oS{margin-top:34px;font-weight:600;font-size:34px;line-height:1.3;color:var(--mu);max-width:860px}
+#outro .oS .sn{display:block;text-wrap:balance}
+#outro .ob{display:flex;flex-direction:column;align-items:center;width:calc(912px / var(--oz,1));transform:scale(var(--oz,1));transform-origin:50% 50%}
+#intro .ttl,#outro .oT{font-style:var(--ffh-style,normal);text-transform:var(--ffh-tt,none)}
+#outro .cta{margin-top:42px;display:inline-flex;align-items:center;justify-content:center;height:96px;padding:0 54px;border-radius:24px;background:var(--ctabg);color:var(--actx,#fff);font-weight:800;font-size:36px;
+  box-shadow:0 20px 50px color-mix(in srgb,var(--ctabg) 40%,transparent)}
+.hide{display:none!important}
+</style></head><body><div id="stage">
+<div class="bg"><i class="g1"></i><i class="g2"></i></div><div class="grain"></div>
+<div id="hdr"><div class="brand"></div><div class="ht"></div></div>
+<div id="intro"><div class="ilogo"></div><div class="kick"></div><div class="ttl"></div><div class="meta"></div></div>
+<div id="dev"><div class="bz"><div class="scr"><img id="f"><div id="sb"><div class="tm">9:41</div><div class="di"></div><div class="ic"><svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg><svg viewBox="0 0 16 12"><path d="M8 2.3c2.3 0 4.4.9 6 2.4l1.2-1.3C13.3 1.6 10.8.5 8 .5S2.7 1.6.8 3.4L2 4.7c1.6-1.5 3.7-2.4 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3C11.4 4.8 9.8 4.1 8 4.1s-3.4.7-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zM8 9.4 10 7.3c-.5-.5-1.2-.7-2-.7s-1.5.2-2 .7z"/></svg><svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="23" height="11" rx="3.3" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="20" height="8" rx="2"/><path d="M25 4v4c.8-.3 1.3-1.1 1.3-2S25.8 4.3 25 4z" fill-opacity=".45"/></svg></div></div><div id="hi"></div><div id="spot"></div><div id="finger"><i class="rip"></i><i class="dot"></i></div><i class="glare"></i></div></div></div>
+<div id="cap"><div class="row"></div><div class="tx"></div><div class="bar"><i></i><div class="ticks"></div></div></div>
+<div id="outro"><div class="ob"><div class="ologo"></div><svg viewBox="0 0 220 220"><circle cx="110" cy="110" r="96" fill="none" stroke="var(--line)" stroke-width="10"/>
+  <circle id="ring" cx="110" cy="110" r="96" fill="none" stroke="var(--ac)" stroke-width="10" stroke-linecap="round" transform="rotate(-90 110 110)"/>
+  <path id="chk" d="M66 114 L98 146 L156 82" fill="none" stroke="var(--tx)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="oT"></div><div class="rec"></div><div class="oS"></div><div class="cta"></div></div></div>
+</div>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)], clamp = (v, a, b) => Math.max(a, Math.min(b, v)), seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1), lerp = (a, b, p) => a + (b - a) * p;
+const io = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2, out3 = p => 1 - Math.pow(1 - p, 3);
+const back = p => { const c = 1.6; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const esc = s => String(s == null ? '' : s).replace(/[&<>]/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[m]));
+// текст подписи: короткие слова не остаются в конце строки, «50 €» не рвется, [Кнопка] выделена цветом как название на экране
+const fmt = s => { let x = String(s == null ? '' : s);
+  for (let k = 0; k < 2; k++) x = x.replace(/(^|[\s(])([\p{L}]{1,3})\s(?=[\p{L}\d\[€$])/gu, '$1$2 ');
+  x = x.replace(/(\d)\s(?=[€$%])/g, '$1 ').replace(/([€$])\s(?=\d)/g, '$1 ');
+  // название кнопки не рвется между строк («Live Казино» целиком), если оно короткое
+  return esc(x).replace(/\[([^\]]+)\]/g, (_, u) => '<span class="ui">' + (u.length <= 24 ? u.replace(/ /g, '\u00a0') : u) + '</span>'); };
+let M, L, IMG, cur = -1, STEPS = [], CHIPS = [];
+function rise(el, t, a, d = .5, y = 30, blur = 8) { const p = out3(seg(t, a, a + d)); el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * y}px)`; el.style.filter = p < 1 ? `blur(${(1 - p) * blur}px)` : 'none'; return p; }
+async function face(name, f) {  // шрифт бренда: файл (кавычки вокруг имени) или готовое значение font-family, например system-ui
+  if (!f || !f.family) return null; if (!f.file) return f.family;
+  const ff = new FontFace(f.family, `url("${f.file}")`, {weight: String(f.weight || '100 900')}); document.fonts.add(ff); await ff.load(); return `"${f.family}"`; }
+// подпись в две строки: разрыв после запятой или двоеточия, если обе части влезают в строку
+function splitCap(el, raw) {
+  const m = /^(.+?[,:])\s+(.+)$/.exec(raw); if (!m) return;
+  const probe = document.createElement('span'); probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit;letter-spacing:inherit'; el.appendChild(probe);
+  const fits = s => { probe.innerHTML = fmt(s); return probe.offsetWidth <= el.clientWidth; };
+  const ok = fits(m[1]) && fits(m[2]); probe.remove();
+  if (ok) el.innerHTML = `${fmt(m[1])}<br>${fmt(m[2])}`; }
+
+window.init = async m => {
+  M = m; const b = M.brand, c = b.colors || {}, R = document.documentElement.style;
+  for (const [k, v] of Object.entries({bg: c.bg, bg2: c.bg2, ac: c.accent, ac2: c.accent2, tx: c.text, mu: c.muted, card: c.card, line: c.line, actx: c.accent_text, sh: c.shadow,
+                                       glow: c.glow, dsh: c.device_shadow, ctabg: c.cta, g1: c.glow1, g2: c.glow2})) if (v) R.setProperty('--' + k, v);
+  const fb = await face('body', b.font), fh = await face('head', b.font_head);
+  if (fb) R.setProperty('--ff', fb); if (fh) R.setProperty('--ffh', fh);
+  if (b.font_head && b.font_head.style) R.setProperty('--ffh-style', b.font_head.style); if (b.font_head && b.font_head.transform) R.setProperty('--ffh-tt', b.font_head.transform);
+  // раскладка: телефон по центру между шапкой и подписью
+  const W = M.W, H = M.H, top = 168, capH = 270, capTop = 1920 - 70 - capH, avail = capTop - 36 - top;
+  // экран целиком в корпусе iPhone: пропорции записи, радиус углов экрана как у iPhone (47 pt на 390 pt ширины), рамка 3%
+  const bz0 = .03; let sh = Math.round((avail - 4) / (1 + 2 * bz0 * W / H)), sw = Math.round(sh * W / H); if (sw > 860) { sw = 860; sh = Math.round(sw * H / W); }
+  const bzw = Math.round(sw * bz0), sr = Math.round(sw * .1215), dw = sw + 2 * bzw, dh = sh + 2 * bzw;
+  L = {sw, sh, dw, dh, dx: Math.round((1080 - dw) / 2), dy: top + Math.round((avail - dh) / 2), capTop, s0: sw / W};
+  const D = $('#dev'); D.style.width = dw + 'px'; D.style.height = dh + 'px'; D.style.left = L.dx + 'px'; D.style.top = L.dy + 'px';
+  D.style.setProperty('--bzw', bzw + 'px'); D.style.setProperty('--sr', sr + 'px'); D.style.setProperty('--dr', (sr + bzw) + 'px');
+  // статус-бар iPhone и полоска «домой» поверх полей, которые ffmpeg добавил к записи из браузера (у записи с телефона они уже свои)
+  { const SB = M.screen || {}, pt = sw / 393, sb = $('#sb'), hi = $('#hi');
+    if (SB.top) { sb.style.height = SB.top * L.s0 + 'px'; sb.style.setProperty('--sbf', 17 * pt + 'px'); sb.style.setProperty('--sbg', 5 * pt + 'px'); sb.style.setProperty('--sbc', SB.topDark ? '#fff' : '#000');
+      const tm = sb.querySelector('.tm'); tm.style.left = 0; tm.style.width = 0.36 * sw + 'px';
+      const di = sb.querySelector('.di'); di.style.width = 125 * pt + 'px'; di.style.height = 37 * pt + 'px'; di.style.top = 11 * pt + 'px'; di.style.marginLeft = -62.5 * pt + 'px';
+      const ic = sb.querySelector('.ic'); ic.style.right = 0; ic.style.width = 0.36 * sw + 'px';
+      ic.querySelectorAll('svg').forEach((g, i) => { g.style.height = [11.5, 11.5, 12.5][i] * pt + 'px'; g.style.width = [17, 15.5, 27][i] * pt + 'px'; });
+    } else sb.classList.add('hide');
+    if (SB.bottom) { hi.style.width = 134 * pt + 'px'; hi.style.height = 5 * pt + 'px'; hi.style.bottom = 8 * pt + 'px'; hi.style.marginLeft = -67 * pt + 'px'; hi.style.setProperty('--hic', SB.bottomDark ? '#fff' : '#000'); }
+    else hi.classList.add('hide'); }
+  IMG = $('#f'); IMG.style.width = W + 'px'; IMG.style.height = H + 'px';
+  const cap = $('#cap'); cap.style.top = capTop + 'px'; cap.style.height = capH + 'px';
+  // тексты
+  const logo = b.logo ? `<img src="${b.logo}">` : (b.logo_text ? `<b>${esc(b.logo_text)}</b>` : '');
+  for (const [sel, on] of [['#hdr .brand', 1], ['#intro .ilogo', 1], ['#outro .ologo', 1]]) { $(sel).innerHTML = logo; $(sel).classList.toggle('hide', !logo); }
+  $('#hdr .ht').textContent = M.title;
+  $('#intro .kick').textContent = M.kicker;
+  $('#intro .ttl').innerHTML = M.titleLines.map(l => `<span class="ln">${esc(l)}</span>`).join('');
+  $('#intro .meta').innerHTML = M.meta.map(x => `<span>${x}</span>`).join('');
+  $('#outro .rec').innerHTML = M.steps.map((s, i) => `<div class="r"><span class="n">${i + 1}</span><span class="x">${fmt(s.text)}</span></div>`).join('');
+  $('#outro .oT').textContent = M.done;
+  $('#outro .oS').innerHTML = String(M.help).split(/(?<=[.!?])\s+/).map(x => `<span class="sn">${fmt(x)}</span>`).join('');
+  if (M.cta) $('#outro .cta').textContent = M.cta; else $('#outro .cta').classList.add('hide');
+  $('#cap .row').innerHTML = M.steps.map((s, i) => `<span class="c">${esc(M.stepLabel.replace('{n}', i + 1).replace('{m}', M.steps.length))}</span>`).join('');
+  CHIPS = $$('#cap .c');
+  const tx = $('#cap .tx'); tx.innerHTML = M.steps.map(s => `<div class="t">${fmt(s.text)}</div>`).join('');
+  STEPS = $$('#cap .t');
+  const span = M.steps[M.steps.length - 1].E - M.steps[0].S;
+  $('#cap .ticks').innerHTML = M.steps.slice(1).map(s => `<u style="left:${(s.S - M.steps[0].S) / span * 100}%"></u>`).join('');
+  await document.fonts.ready;
+  STEPS.forEach((el, i) => { let f = 48; el.style.fontSize = f + 'px'; while (el.scrollHeight > 124 && f > 30) { f -= 2; el.style.fontSize = f + 'px'; }
+    if (el.scrollHeight > 70) splitCap(el, M.steps[i].text); });
+  // финал без логотипа и кнопки: блок крупнее, чтобы не оставалось пустых полос
+  { const ob = $('#outro .ob'); const h = ob.offsetHeight; R.setProperty('--oz', String(clamp(1320 / Math.max(h, 1), 1, 1.22))); }
+  // заголовок заставки: каждая строка в ширину кадра, длинные строки уменьшают кегль; блок по центру над выглядывающим телефоном
+  { const ttl = $('#intro .ttl'), lines = $$('#intro .ln'); let f = lines.length > 2 ? 100 : 112;
+    const fit = () => Math.max(...lines.map(l => l.scrollWidth)) <= 930;
+    ttl.style.fontSize = f + 'px'; while (!fit() && f > 64) { f -= 4; ttl.style.fontSize = f + 'px'; ttl.style.letterSpacing = (-3.4 * f / 112) + 'px'; }
+    const I = $('#intro'), h = I.offsetHeight, peekTop = L.dy + 700; I.style.top = Math.max(120, Math.round((110 + peekTop - 40 - h) / 2)) + 'px'; }
+  const ring = $('#ring'), ck = $('#chk'); ring.style.strokeDasharray = ring.getTotalLength(); ck.style.strokeDasharray = ck.getTotalLength();
+  return true;
+};
+
+function cam(t) {  // камера в пикселях записи: зум и центр, плавные переходы между ключами
+  const K = M.keys; if (t <= K[0].t) return K[0]; if (t >= K[K.length - 1].t) return K[K.length - 1];
+  let i = 0; while (i < K.length - 2 && t > K[i + 1].t) i++;
+  const a = K[i], b = K[i + 1], p = io(seg(t, a.t, b.t));
+  return {z: lerp(a.z, b.z, p), cx: lerp(a.cx, b.cx, p), cy: lerp(a.cy, b.cy, p)};
+}
+function frameAt(t) {
+  const S = M.steps; let i = S.findIndex(s => t < s.E); if (i < 0) i = S.length - 1; if (t < S[0].S) i = 0;
+  const s = S[i], k = clamp(Math.floor((t - s.S) * M.fps + 1e-3), 0, s.n - 1);
+  return s.dir + '/' + String(k + 1).padStart(5, '0') + '.jpg';
+}
+
+window.render = async t => {
+  const S = M.steps, T0 = S[0].S, TE = S[S.length - 1].E, TO = TE;
+  // фон медленно дышит
+  const g1 = $('.bg .g1'), g2 = $('.bg .g2');
+  g1.style.left = (-180 + 70 * Math.sin(t * .35)) + 'px'; g1.style.top = (-160 + 60 * Math.cos(t * .3)) + 'px';
+  g2.style.left = (560 + 60 * Math.cos(t * .28)) + 'px'; g2.style.top = (1180 + 70 * Math.sin(t * .32)) + 'px';
+  // кадр записи
+  const src = frameAt(t); if (src !== cur) { cur = src; IMG.src = src; try { await IMG.decode(); } catch (e) {} }
+  // камера: ключи из плана плюс медленное «дыхание», чтобы статичный экран не выглядел зависшим
+  const c = cam(t), amp = seg(t, T0, T0 + .8) * (1 - seg(t, TE - .8, TE)), breathe = 1 + .008 * amp * (.5 - .5 * Math.cos(2 * Math.PI * (t - T0) / 6.5));
+  const sc = L.s0 * c.z;   // экран всегда целиком: «дыхание» только у корпуса, запись внутри не обрезается
+  let tx = L.sw / 2 - c.cx * sc, ty = L.sh / 2 - c.cy * sc;
+  tx = clamp(tx, L.sw - M.W * sc, 0); ty = clamp(ty, L.sh - M.H * sc, 0);
+  IMG.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`;
+  const map = (x, y) => [tx + x * sc, ty + y * sc];
+  // рамка цели и палец: рамка до касания, палец нажимает; оба уходят до смены экрана
+  const st = S.find(s => t >= s.S - .05 && t < s.E + .05) || S[0];
+  const spot = $('#spot'), fg = $('#finger'), d = fg.querySelector('.dot'), r = fg.querySelector('.rip');
+  if (st.focus) {
+    const [fx, fy, fw, fh, fr] = st.focus, pd = 8; let [x0, y0] = map(fx - pd, fy - pd), [x1, y1] = map(fx + fw + pd, fy + fh + pd);   // рамка по границам элемента + 8 px записи
+    x0 = Math.max(x0, 4); y0 = Math.max(y0, 4); x1 = Math.min(x1, L.sw - 4); y1 = Math.min(y1, L.sh - 4);
+    spot.style.borderRadius = ((fr == null ? 24 : fr) + pd) * sc + 'px';
+    let k;
+    if (st.tap) { const [, , T, C] = st.tap; k = io(seg(t, T - 1.1, T - .65)) * (1 - io(seg(t, T + .04, Math.min(T + .22, C)))); }
+    else k = io(seg(t, st.S + .3, st.S + .8)) * (1 - io(seg(t, st.E - .45, st.E - .1)));
+    spot.style.left = x0 + 'px'; spot.style.top = y0 + 'px'; spot.style.width = Math.max(0, x1 - x0) + 'px'; spot.style.height = Math.max(0, y1 - y0) + 'px'; spot.style.opacity = k * .95;
+  } else spot.style.opacity = 0;
+  if (st.tap) {
+    // касание показывается только в момент нажатия (около 0,4 с): до него цель видна целиком в рамке
+    const [px, py, T, C] = st.tap, [X, Y] = map(px, py), a = seg(t, T - .2, T - .04), pr = seg(t, T - .02, T + .08), rl = seg(t, T + .08, T + .2);
+    const gone = seg(t, Math.min(T + .1, C - .14), Math.min(T + .26, C - .02)), s = lerp(1.35, 1, out3(a)) * (1 - .18 * out3(pr) + .18 * out3(rl));
+    fg.style.left = X + 'px'; fg.style.top = Y + 'px';
+    d.style.opacity = out3(a) * (1 - gone); d.style.transform = `scale(${s})`;
+    const rp = seg(t, T, T + .4); r.style.opacity = rp > 0 && rp < 1 ? .85 * (1 - rp) * (1 - seg(t, C - .12, C)) : 0; r.style.transform = `scale(${1 + 1.8 * out3(rp)})`;
+  } else { d.style.opacity = 0; r.style.opacity = 0; }
+  // заставка: кадр 0 уже собран (его берут мессенджеры как превью), дальше мягкая доводка; потом блок уходит наверх, телефон встает на место
+  { const I = $('#intro'); const out = io(seg(t, T0 - .9, T0 - .35)), st0 = out3(seg(t, 0, 1.3));
+    $$('#intro .ln').forEach((l, i) => { const p = out3(seg(t, i * .08, .9 + i * .08)); l.style.transform = `translateY(${(1 - p) * 18}px)`; });
+    $('#intro .kick').style.transform = `scale(${1 + .04 * (1 - st0)})`; $('#intro .meta').style.transform = `translateY(${(1 - st0) * 10}px)`;
+    I.style.opacity = 1 - out; I.style.transform = `translateY(${-140 * out}px) scale(${1 - .06 * out})`; I.style.filter = out > 0 ? `blur(${out * 10}px)` : 'none';
+    I.style.display = t > T0 ? 'none' : 'flex'; }
+  { const D = $('#dev'); const pin = io(seg(t, T0 - 1.15, T0 - .05)), po = io(seg(t, TO, TO + .34)), pf = io(seg(t, TO, TO + .22)), peek = 760 - 60 * out3(seg(t, 0, T0 - 1.15));
+    const y = (1 - pin) * peek - 70 * po, s = lerp(.9, 1, pin) * (1 - .16 * po), rx = (1 - pin) * 14;
+    const br = 1 + .008 * seg(t, T0, T0 + .8) * (1 - seg(t, TE - .8, TE)) * (.5 - .5 * Math.cos(2 * Math.PI * (t - T0) / 6.5));
+    D.style.transform = `perspective(2200px) translateY(${y}px) rotateX(${rx}deg) scale(${s * br})`; D.style.opacity = 1 - pf; }
+  { const h = $('#hdr'); h.style.opacity = Math.min(seg(t, T0 - .6, T0 - .15), 1 - seg(t, TO, TO + .3)); }
+  // подпись: номер шага и текст сменяются одной волной, полоса прогресса
+  { const cap = $('#cap'), pin = out3(seg(t, T0 - .6, T0 - .1)), po = seg(t, TO, TO + .3);
+    cap.style.opacity = Math.min(pin, 1 - po); cap.style.transform = `translateY(${(1 - pin) * 50 + po * 30}px)`;
+    const at = j => j === 0 ? S[0].S : (S[j - 1].tap ? Math.min(S[j - 1].tap[3] + .04, S[j].S) : S[j].S);   // новая подпись вместе с новым экраном
+    STEPS.forEach((el, j) => {
+      const a = at(j), nx = j === S.length - 1 ? 1e9 : at(j + 1);
+      const inn = j === 0 ? 1 : out3(seg(t, a + .04, a + .34)), gone = io(seg(t, nx - .1, nx + .04));   // старая уходит целиком, новая сразу за ней: тексты не накладываются
+      const vis = (t >= a + .04 || j === 0) && t < nx + .04 ? Math.min(inn, 1 - gone) : 0;
+      el.style.opacity = vis; el.style.transform = `translateY(calc(-50% + ${(1 - inn) * 16 - gone * 14}px))`; el.style.filter = vis < 1 ? `blur(${(1 - vis) * 6}px)` : 'none';
+      const ch = CHIPS[j]; ch.style.opacity = vis; ch.style.transform = `translateY(${(1 - inn) * 8 - gone * 8}px)`;
+    });
+    $('#cap .bar i').style.width = (100 * clamp((t - T0) / (TE - T0), 0, 1)) + '%'; }
+  // финал: логотип, галочка рисуется, «Готово», список шагов, подсказка, кнопка
+  { const O = $('#outro'), a = TO + .12; O.style.opacity = seg(t, TO + .08, TO + .26);
+    const ring = $('#ring'), ck = $('#chk'), rL = parseFloat(ring.style.strokeDasharray), cL = parseFloat(ck.style.strokeDasharray);
+    ring.style.strokeDashoffset = rL * (1 - io(seg(t, a, a + .6))); ck.style.strokeDashoffset = cL * (1 - out3(seg(t, a + .45, a + .8))); ck.style.opacity = t >= a + .45 ? 1 : 0;
+    const pop = seg(t, a + .75, a + 1.1); $('#outro svg').style.transform = `scale(${t > a + .75 ? .9 + .1 * back(pop) : .9 + .1 * out3(seg(t, a, a + .3))})`;
+    rise($('#outro .ologo'), t, a, .5, 20, 6); rise($('#outro .oT'), t, a + .15, .5, 40, 10);
+    const rows = $$('#outro .rec .r'); rise($('#outro .rec'), t, a + .27, .45, 30, 6);
+    rows.forEach((r, i) => rise(r, t, a + .3 + i * .05, .4, 18, 5));
+    rise($('#outro .oS'), t, a + .38 + rows.length * .05, .5, 26, 8); rise($('#outro .cta'), t, a + .5 + rows.length * .05, .5, 26, 8); }
+  return true;
+};
+window.READY = true;
+</script></body></html>

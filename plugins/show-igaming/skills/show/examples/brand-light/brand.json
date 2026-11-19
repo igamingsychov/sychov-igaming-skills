@@ -1,0 +1,57 @@
+{
+ "name": "light-green",
+ "note": "пример: светлая тема, зеленый акцент, заголовки с засечками (Lora), обращение на «вы», свои тексты финала и кнопка; запись та же",
+ "logo": "logo.svg",
+ "logo_text": "",
+ "colors": {
+  "bg": "#F2F5F1",
+  "bg2": "#D3F1E0",
+  "accent": "#0FA968",
+  "accent2": "#0A7A4B",
+  "accent_text": "#FFFFFF",
+  "text": "#0F1B15",
+  "muted": "#5A6A61",
+  "card": "rgba(255,255,255,.92)",
+  "line": "rgba(15,27,21,.10)",
+  "shadow": "rgba(16,48,32,.12)",
+  "glow": "rgba(15,169,104,.14)",
+  "device_shadow": "0 30px 60px rgba(16,48,32,.16)",
+  "cta": "#0A7A4B"
+ },
+ "font": {
+  "family": "",
+  "file": ""
+ },
+ "you": "vy",
+ "glossary": {
+  "депозит": "пополнение",
+  "вывод": "выплата"
+ },
+ "kicker": {
+  "ru": "Помощь",
+  "uk": "Допомога",
+  "en": "Help"
+ },
+ "outro": {
+  "title": {
+   "ru": "Готово!",
+   "uk": "Готово!",
+   "en": "All set!"
+  },
+  "sub": {
+   "ru": "Остались вопросы? Чат поддержки работает 24/7",
+   "uk": "Залишились питання? Чат підтримки працює 24/7",
+   "en": "Still have questions? Our support chat is open 24/7"
+  },
+  "cta": {
+   "ru": "Открыть чат",
+   "uk": "Відкрити чат",
+   "en": "Open chat"
+  }
+ },
+ "font_head": {
+  "family": "Lora",
+  "file": "Lora-Bold.ttf",
+  "weight": "700"
+ }
+}

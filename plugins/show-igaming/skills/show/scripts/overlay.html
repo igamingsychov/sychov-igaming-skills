@@ -1,0 +1,80 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<!-- Слои ролика, которые рисует браузер в прозрачный PNG: рамка экрана, подписи шагов, заставки, метка нажатия, линейка для кадров.
+     Параметры приходят в адресе: overlay.html?d=<JSON>. Открывает render-часть show.py, руками не нужен. -->
+<style>
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-cyrillic-ext.woff2) format('woff2');unicode-range:U+0460-052F,U+1C80-1C8A,U+20B4,U+2DE0-2DFF,U+A640-A69F,U+FE2E-FE2F}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-cyrillic.woff2) format('woff2');unicode-range:U+0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2116}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:M;font-weight:100 900;src:url(../assets/fonts/Montserrat-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:transparent;overflow:hidden}
+#c{position:relative;overflow:hidden;font-family:M,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
+svg{position:absolute;left:0;top:0}
+.abs{position:absolute}
+.title{left:0;right:0;text-align:center;font-weight:600;color:rgba(255,255,255,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 60px}
+.prog{display:flex;justify-content:center;gap:10px;left:0;right:0}
+.prog i{height:8px;border-radius:4px;background:rgba(255,255,255,.16)}
+.chip{left:0;right:0;text-align:center;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.txt{text-align:center;font-weight:700;line-height:1.2;letter-spacing:-.01em;text-wrap:balance;display:flex;align-items:flex-start;justify-content:center}
+.big{font-weight:800;line-height:1.06;letter-spacing:-.025em;text-wrap:balance}
+.sub{font-weight:500;color:rgba(255,255,255,.68);line-height:1.3;text-wrap:balance}
+.rl{position:absolute;font:600 13px/1 ui-monospace,Menlo,Consolas,monospace;color:#fff}
+</style></head><body><div id="c"></div>
+<script>
+const P = JSON.parse(decodeURIComponent(new URLSearchParams(location.search).get('d')));
+const c = document.getElementById('c'); c.style.width = P.W + 'px'; c.style.height = P.H + 'px';
+const A = P.accent || '#7A5CFF', esc = s => String(s).replace(/[&<>]/g, m => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[m]));
+const k = Math.min(P.W, P.H) / 1080;                       // масштаб оформления от размера холста
+const STEP = {ru: 'Шаг {n} из {m}', uk: 'Крок {n} з {m}', en: 'Step {n} of {m}', es: 'Paso {n} de {m}', pt: 'Passo {n} de {m}', de: 'Schritt {n} von {m}', fr: 'Étape {n} sur {m}', pl: 'Krok {n} z {m}', tr: 'Adım {n} / {m}', it: 'Passo {n} di {m}'};
+// фон: темный графит с двумя мягкими пятнами цвета акцента; hole = прозрачное окно под запись экрана
+function bg(hole) {
+  const m = hole ? `<mask id="m"><rect width="${P.W}" height="${P.H}" fill="#fff"/><rect x="${hole.x}" y="${hole.y}" width="${hole.w}" height="${hole.h}" rx="${hole.r}" fill="#000"/></mask>` : '';
+  const mk = hole ? 'mask="url(#m)"' : '';
+  return `<svg width="${P.W}" height="${P.H}" viewBox="0 0 ${P.W} ${P.H}"><defs>${m}
+    <radialGradient id="g1" cx="12%" cy="6%" r="70%"><stop offset="0" stop-color="${A}" stop-opacity=".34"/><stop offset="1" stop-color="${A}" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g2" cx="96%" cy="98%" r="62%"><stop offset="0" stop-color="${A}" stop-opacity=".2"/><stop offset="1" stop-color="${A}" stop-opacity="0"/></radialGradient>
+    <filter id="b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${22 * k}"/></filter></defs>
+    <g ${mk}><rect width="${P.W}" height="${P.H}" fill="#0A0C13"/><rect width="${P.W}" height="${P.H}" fill="url(#g1)"/><rect width="${P.W}" height="${P.H}" fill="url(#g2)"/>
+    ${hole ? `<rect x="${hole.x}" y="${hole.y}" width="${hole.w}" height="${hole.h}" rx="${hole.r}" fill="none" stroke="${A}" stroke-opacity=".5" stroke-width="${14 * k}" filter="url(#b)"/>` : ''}</g>
+    ${hole ? `<rect x="${hole.x - 1}" y="${hole.y - 1}" width="${hole.w + 2}" height="${hole.h + 2}" rx="${hole.r + 1}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="${2.5 * k}"/>` : ''}</svg>`;
+}
+function fit(el, max, min, boxH) { let f = max; el.style.fontSize = f + 'px'; while (el.scrollHeight > boxH + 1 && f > min) { f -= 1; el.style.fontSize = f + 'px'; } }
+
+if (P.mode === 'frame') c.innerHTML = bg({x: P.vx, y: P.vy, w: P.vw, h: P.vh, r: P.r});
+
+if (P.mode === 'caption') {
+  const top = P.vy + P.vh, free = P.H - top, segW = Math.min(64 * k, (P.W * .5) / P.total - 10);
+  const label = (STEP[P.lang] || STEP.en).replace('{n}', P.step).replace('{m}', P.total);
+  c.innerHTML = `<div class="abs title" style="top:${Math.max(8, P.vy / 2 - 17 * k)}px;font-size:${26 * k}px">${esc(P.title || '')}</div>
+    <div class="abs prog" style="top:${top + free * .11}px">${Array.from({length: P.total}, (_, i) => `<i style="width:${segW}px;${i < P.step ? `background:${A};` : ''}${i === P.step - 1 ? `box-shadow:0 0 ${14 * k}px ${A}` : ''}"></i>`).join('')}</div>
+    <div class="abs chip" style="top:${top + free * .2}px;font-size:${24 * k}px;color:${A};filter:brightness(1.35) saturate(.9)">${esc(label)}</div>
+    <div class="abs txt" id="t" style="left:${70 * k}px;right:${70 * k}px;top:${top + free * .2 + 46 * k}px;height:${free * .8 - 46 * k - 44 * k}px">${esc(P.text)}</div>`;
+  const t = document.getElementById('t'); fit(t, 48 * k, 30 * k, t.clientHeight);
+}
+
+if (P.mode === 'intro' || P.mode === 'outro') {
+  const pad = 90 * k, done = P.mode === 'outro';
+  c.innerHTML = bg(null) + `<div class="abs" style="left:${pad}px;right:${pad}px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;gap:${30 * k}px">
+    ${done ? `<div style="width:${132 * k}px;height:${132 * k}px;border-radius:50%;background:${A};display:grid;place-items:center;box-shadow:0 0 ${60 * k}px ${A}"><svg style="position:static" width="${66 * k}" height="${66 * k}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l5 5 10-11"/></svg></div>`
+           : `<div style="font-size:${26 * k}px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:${A};filter:brightness(1.35) saturate(.9)">${esc(P.kicker || '')}</div>`}
+    <div class="big" id="t" style="max-height:${P.H * .42}px">${esc(P.title)}</div>
+    <div class="sub" style="font-size:${34 * k}px">${esc(P.sub || '')}</div>
+    ${done ? '' : `<div style="width:${120 * k}px;height:${8 * k}px;border-radius:${4 * k}px;background:${A}"></div>`}</div>`;
+  const t = document.getElementById('t'); fit(t, 92 * k, 50 * k, P.H * .42);
+}
+
+if (P.mode === 'ring') {
+  const s = P.W;
+  c.innerHTML = `<div class="abs" style="inset:${s * .14}px;border-radius:50%;border:${s * .045}px solid #fff;box-shadow:0 0 0 ${s * .018}px rgba(0,0,0,.3),0 0 ${s * .12}px ${A},inset 0 0 0 ${s * .018}px rgba(0,0,0,.25);background:${A}33"></div>
+    <div class="abs" style="left:${s * .39}px;top:${s * .39}px;width:${s * .22}px;height:${s * .22}px;border-radius:50%;background:${A};border:${s * .03}px solid #fff"></div>`;
+}
+
+if (P.mode === 'ruler') {
+  // линейка в полях вокруг кадра и редкая сетка поверх него: подписи в пикселях исходной записи
+  const f = P.mw / P.sw; let h = '';
+  for (let x = 0; x <= P.sw; x += P.tick) { const X = P.ml + x * f; h += `<div class="abs" style="left:${X}px;top:${P.mt}px;width:1px;height:${P.mh}px;background:rgba(255,255,255,${x % (P.tick * 5) ? .2 : .42});mix-blend-mode:difference"></div><div class="rl" style="left:${X - 16}px;top:6px;width:32px;text-align:center">${x}</div>`; }
+  for (let y = 0; y <= P.sh; y += P.tick) { const Y = P.mt + y * f; h += `<div class="abs" style="left:${P.ml}px;top:${Y}px;height:1px;width:${P.mw}px;background:rgba(255,255,255,${y % (P.tick * 5) ? .2 : .42});mix-blend-mode:difference"></div><div class="rl" style="left:0;top:${Y - 6}px;width:${P.ml - 6}px;text-align:right">${y}</div>`; }
+  c.innerHTML = h;
+}
+</script></body></html>

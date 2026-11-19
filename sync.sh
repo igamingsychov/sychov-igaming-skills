@@ -2,8 +2,8 @@
 # Copies the current skill files from the skill repositories into the plugins of this marketplace.
 #   ./sync.sh            copy, then raise the patch version of each plugin whose files changed
 #   ./sync.sh --no-bump  copy without changing versions
-# Sources: ../watch-igaming and ../second-deposit-igaming next to this repository.
-# Another folder that holds both skill repositories: SKILLS_SRC=/path ./sync.sh
+# Sources: ../watch-igaming, ../second-deposit-igaming and ../show-igaming next to this repository.
+# Another folder that holds the skill repositories: SKILLS_SRC=/path ./sync.sh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,6 +22,7 @@ done
 PLUGINS=(
   "watch-igaming|watch-igaming|watch"
   "second-deposit-igaming|second-deposit-igaming|second-deposit"
+  "show-igaming|show-igaming|show"
 )
 
 # No macOS metadata files (._*) inside tar streams.
@@ -29,7 +30,7 @@ export COPYFILE_DISABLE=1
 
 # Prints the source files to copy, NUL-separated, relative to the source folder.
 # Files that belong to the repository page and not to the skill are skipped:
-# README*, LICENSE (copied to the plugin root instead), install.sh, git files, README images.
+# README*, LICENSE (copied to the plugin root instead), install.sh, git files, README images and videos.
 list_files() {
   local src="$1"
   if git -C "$src" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -43,6 +44,7 @@ list_files() {
       .git/*|.github/*) continue ;;
       .DS_Store|*/.DS_Store|._*|*/._*|__pycache__/*|*/__pycache__/*|*.pyc) continue ;;
       examples/*.png) continue ;;
+      examples/video/*) continue ;;
     esac
     [ -f "$src/$f" ] || continue
     printf '%s\0' "$f"

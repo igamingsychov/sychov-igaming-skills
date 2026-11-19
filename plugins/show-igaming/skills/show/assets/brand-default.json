@@ -1,0 +1,11 @@
+{
+ "name": "default",
+ "logo": "",
+ "logo_text": "",
+ "colors": {"bg": "#0A0C13", "bg2": "#1A1540", "accent": "#7A5CFF", "accent2": "#C2B4FF", "accent_text": "#FFFFFF", "text": "#FFFFFF", "muted": "#A7ABC9", "card": "rgba(22,24,44,.84)", "line": "rgba(255,255,255,.12)", "shadow": "rgba(0,0,0,.4)"},
+ "font": {"family": "", "file": ""},
+ "you": "ty",
+ "glossary": {},
+ "kicker": {},
+ "outro": {"title": {}, "sub": {}, "cta": {}}
+}

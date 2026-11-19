@@ -1,6 +1,6 @@
 # sychov-igaming-skills
 
-A Claude Code plugin marketplace with two open skills for casino and betting teams. Each plugin holds one skill; the skill repositories stay the source, and this repository packs them so you can install and update them with the `/plugin` command.
+A Claude Code plugin marketplace with three open skills for casino and betting teams. Each plugin holds one skill; the skill repositories stay the source, and this repository packs them so you can install and update them with the `/plugin` command.
 
 ## Install
 
@@ -10,6 +10,7 @@ In a Claude Code session:
 /plugin marketplace add igamingsychov/sychov-igaming-skills
 /plugin install watch-igaming@sychov-igaming-skills
 /plugin install second-deposit-igaming@sychov-igaming-skills
+/plugin install show-igaming@sychov-igaming-skills
 ```
 
 From the shell:
@@ -18,6 +19,7 @@ From the shell:
 claude plugin marketplace add igamingsychov/sychov-igaming-skills
 claude plugin install watch-igaming@sychov-igaming-skills
 claude plugin install second-deposit-igaming@sychov-igaming-skills
+claude plugin install show-igaming@sychov-igaming-skills
 ```
 
 Then run `/reload-plugins` or start a new session. To get new versions later, run `claude plugin marketplace update sychov-igaming-skills` and `claude plugin update <plugin>@sychov-igaming-skills`, or turn on auto-update for this marketplace in `/plugin`.
@@ -45,6 +47,15 @@ Shows why first-time depositors (FTD) do not make a second deposit, from back-of
 - Page: [sychov-igaming.com/en/skills/second-deposit](https://sychov-igaming.com/en/skills/second-deposit/)
 - A scheduled daily run points to the skill folder, and a plugin's folder changes with each version. For scheduled runs, the `git clone` install from the repository is the better fit.
 
+### show-igaming
+
+Turns a site link and steps in plain words into a finished vertical tutorial video for players. Claude opens the mobile version of the site as an iPhone 15 screen, finds and taps each element, checks that every tap changed the screen, takes the highlight frames from the page itself and renders a 1080x1920 video per language with captions, blurred personal data and your brand. Steps behind a login run in a test account you sign into yourself in a separate Chrome window; payment, withdrawal and bet buttons are never pressed. For support, CRM and product teams.
+
+- Run: `make a demo video with the show skill`, then `make a video guide: how to find a game through search on <link>`, or `/show-igaming:show <link and steps>`
+- Needs: macOS or Linux with `python3`, `ffmpeg` and Google Chrome
+- Repository: [igamingsychov/show-igaming](https://github.com/igamingsychov/show-igaming)
+- Page: [sychov-igaming.com/en/skills/show](https://sychov-igaming.com/en/skills/show/)
+
 ## Layout
 
 ```text
@@ -53,18 +64,20 @@ plugins/watch-igaming/                 plugin: .claude-plugin/plugin.json, READM
   skills/watch/                        SKILL.md, templates/, examples/
 plugins/second-deposit-igaming/        plugin: .claude-plugin/plugin.json, README, LICENSE
   skills/second-deposit/               SKILL.md, references/, scripts/, examples/
+plugins/show-igaming/                  plugin: .claude-plugin/plugin.json, README, LICENSE
+  skills/show/                         SKILL.md, scripts/, assets/, examples/
 sync.sh                                copies the skill files from the skill repositories
 ```
 
 ## Updating the plugins (maintainer)
 
-The skills are edited in their own repositories. To bring the changes here, keep `watch-igaming` and `second-deposit-igaming` next to this repository and run:
+The skills are edited in their own repositories. To bring the changes here, keep `watch-igaming`, `second-deposit-igaming` and `show-igaming` next to this repository and run:
 
 ```bash
 ./sync.sh
 ```
 
-The script copies `SKILL.md` and the skill's files (without `.git`, `.DS_Store`, READMEs, `install.sh` and README images), copies `LICENSE` to the plugin, checks that every `templates/`, `examples/`, `references/` and `scripts/` path named in the skill exists, and raises the patch version in `plugin.json` of each plugin whose files changed, so that installed copies update. `./sync.sh --no-bump` copies without changing versions. Then run `claude plugin validate .`, review `git diff` and commit.
+The script copies `SKILL.md` and the skill's files (without `.git`, `.DS_Store`, READMEs, `install.sh`, README images and videos), copies `LICENSE` to the plugin, checks that every `templates/`, `examples/`, `references/` and `scripts/` path named in the skill exists, and raises the patch version in `plugin.json` of each plugin whose files changed, so that installed copies update. `./sync.sh --no-bump` copies without changing versions. Then run `claude plugin validate .`, review `git diff` and commit.
 
 ## License
 
